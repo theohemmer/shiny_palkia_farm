@@ -1,3 +1,5 @@
+#!/bin/python3
+
 from nxbt import controller
 import cv2
 import smtplib
@@ -95,7 +97,7 @@ def main():
 
     state = False
 
-    vc = cv2.VideoCapture(1)
+    vc = cv2.VideoCapture(0)
     vc.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
     vc.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
@@ -118,9 +120,6 @@ def main():
         if state == False:
             rval, frame = vc.read()
         key = cv2.waitKey(1)
-        cv2.circle(frame, (point_x,point_y), 5, (255,0,0), 5)
-        (b, g, r) = frame[point_y, point_x]
-        print("Point - ({}, {}) R: {} G: {} B: {}".format(point_x, point_y, r, g, b))
         if actual_frame >= 10000:
             time = datetime.now().strftime("%d%m%Y_%H%M%S")
             time = time + ".jpg"
