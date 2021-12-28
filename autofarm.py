@@ -70,9 +70,15 @@ def main():
         rval = False
 
     check_state = 0
+    prev_state = 0
+    actual_frame = 0
     total_frame = 0
 
     while rval:
+        actual_frame += 1
+        if check_state != prev_state:
+            prev_state = check_state
+            actual_frame = 0
         cv2.imshow("preview", frame)
         if state == False:
             rval, frame = vc.read()
@@ -80,6 +86,11 @@ def main():
         cv2.circle(frame, (point_x,point_y), 5, (255,0,0), 5)
         (b, g, r) = frame[point_y, point_x]
         print("Point - ({}, {}) R: {} G: {} B: {}".format(point_x, point_y, r, g, b))
+        if actual_frame >= 10000:
+            time = datetime.now().strftime("%d%m%Y_%H%M%S")
+            time = time + ".jpg"
+            cv2.imwrite(time, frame)
+            sendMail(time, "Personnel - The Shiny farmer is stuck", "Look in the attachement")
         if key == 27: # exit on ESC
             break
         if key == 13:
