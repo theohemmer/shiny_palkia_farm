@@ -8,16 +8,16 @@ from email.mime.multipart import MIMEMultipart
 #|N         NAME            X      Y      R   G   B |
 #|0 - example            : 1920   1080   255 255 255|
 #|--------------------------------------------------|
-#|1 - online             : 521    806    233 0   0  |
-#|0 - quit               : 528    517    255 245 18 |
-#|1 - online             : 521    806    233 0   0  |
-#|2 - link               : 911    650    255 255 136|
-#|3 - developed by       : 1041   414    255 255 255|
-#|4 - title screen       : 827    318    255 237 13 |
-#|5 - in game            : 570    108    255 255 255|
-#|6 - diag before fight  : 1271   977    255 255 255|
-#|6 - diag in fight      : 1271   977    255 255 255|
-#|7 - fight button       : 1731   647    254 77  55 |
+#|1 - online             : 521    806    233 0   0  | search top screen brighter than middle and low
+#|0 - quit               : 528    517    255 245 18 | search middle screen brighter than top and low
+#|1 - online             : 521    806    233 0   0  | search top screen brighter than middle and low
+#|2 - link               : 911    650    255 255 136| search bottom screen brighter than top and low
+#|3 - developed by       : 1041   414    255 255 255| search r > 200 g > 200 b > 200
+#|4 - title screen       : 827    318    255 237 13 | search r > 200 g > 200 b < 100
+#|5 - in game            : 570    108    255 255 255| search r > 200 g > 200 b > 200
+#|6 - diag before fight  : 1271   977    255 255 255| search r > 200 g > 200 b > 200
+#|6 - diag in fight      : 1271   977    255 255 255| search r > 200 g > 200 b > 200
+#|7 - fight button       : 1731   647    254 77  55 | search r > 230 g < 100 b < 100
 #|8 - palkia color       : 1314   539    240 151 207|
 
 point_x = 0
