@@ -8,6 +8,10 @@ from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 import nxbt
 
+# top 954 15
+# middle 931 463
+# bottom 974 940
+
 #|N         NAME            X      Y      R   G   B |
 #|0 - example            : 1920   1080   255 255 255|
 #|--------------------------------------------------|
@@ -99,9 +103,11 @@ def main():
     nx = nxbt.Nxbt()
 
     ctrl_idx = nx.create_controller(nxbt.PRO_CONTROLLER)
-    #nx.wait_for_connection(ctrl_idx)
+    nx.wait_for_connection(ctrl_idx)
 
     state = False
+
+    sendHome(nx, ctrl_idx)
 
     vc = cv2.VideoCapture(0, cv2.CAP_ANY)
     vc.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
@@ -136,79 +142,81 @@ def main():
             sendMail(time, "Personnel - The Shiny farmer is stuck", "Look in the attachement")
         cv2.circle(frame, (point_x, point_y), 5, (255,0,0), 5)
         (b, g, r) = frame[point_y, point_x]
-        print("Point - ({}, {}) R: {}, G: {}, B: {}".format(point_x, point_y, r, g, b))
+        #print("Point - ({}, {}) R: {}, G: {}, B: {}".format(point_x, point_y, r, g, b))
         if key == 27: # exit on ESC
             break
         if key == 13:
             check_state = 0
             total_frame = 0
         if check_state == 0:
-            #(b, g, r) = frame[806, 521]
-            if r == 233 and g == 0 and b == 0:
-                #sendX(nx, ctrl_idx)
-                check_state = 0
-            cv2.putText(frame, "Waiting for home screen", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
+            (b, g, r) = frame[806, 521]
+            if r >= 220 and g <= 50 and b <= 50:
+                sendX(nx, ctrl_idx)
+                check_state = 1
+            cv2.putText(frame, "Waiting for home screen", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 1:
-            (b, g, r) = frame[517, 528]
-            if r == 255 and g == 245 and b == 18:
+            (b, g, r) = frame[189, 727]
+            if r <= 100 and g <= 100 and b <= 100:
                 sendA(nx, ctrl_idx)
                 check_state = 2
-            cv2.putText(frame, "Waiting for exit confirmation", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
+            cv2.putText(frame, "Waiting for exit confirmation", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 2:
             (b, g, r) = frame[806, 521]
-            if r == 233 and g == 0 and b == 0:
+            if r >= 220 and g <= 50 and b <= 50:
                 sendA(nx, ctrl_idx)
                 check_state = 3
-            cv2.putText(frame, "Waiting for home screen", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
+            cv2.putText(frame, "Waiting for home screen", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 3:
             (b, g, r) = frame[650, 911]
-            if r == 255 and g == 255 and b == 136:
+            if r >= 220 and g >= 220 and b <= 220:
                 sendA(nx, ctrl_idx)
                 check_state = 4
-            cv2.putText(frame, "Waiting for player choise", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
+            cv2.putText(frame, "Waiting for player choise", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 4:
-            (b, g, r) = frame[414, 1041]
-            if r == 255 and g == 255 and b == 255:
-                sendA(nx, ctrl_idx)
-                check_state = 5
-            cv2.putText(frame, "Waiting for developed by", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
+            (b, g, r) = frame[416, 960]
+            (b1, g1, r1) = frame[15, 954]
+            if r >= 200 and g >= 200 and b >= 200:
+                if b1 <= 10 and g1 <= 10 and b1 <= 10:
+                    sendA(nx, ctrl_idx)
+                    check_state = 5
+            cv2.putText(frame, "Waiting for developed by", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 5:
             (b, g, r) = frame[318, 827]
-            if r == 255 and g == 237 and b == 13:
+            if r >= 200 and g >= 200 and b <= 100:
                 sendA(nx, ctrl_idx)
                 check_state = 6
-            cv2.putText(frame, "Waiting for title screen", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
+            cv2.putText(frame, "Waiting for title screen", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 6:
             (b, g, r) = frame[108, 570]
-            if r == 255 and g == 255 and b == 255:
+            if r >= 200 and g >= 200 and b >= 200:
                 sendUP(nx, ctrl_idx)
                 check_state = 7
-            cv2.putText(frame, "Waiting for in game", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
+            cv2.putText(frame, "Waiting for in game", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 7:
             (b, g, r) = frame[977, 1271]
-            if r == 255 and g == 255 and b == 255:
+            if r >= 200 and g >= 200 and b >= 200:
                 sendA(nx, ctrl_idx)
                 sendA(nx, ctrl_idx)
                 check_state = 8
-            cv2.putText(frame, "Waiting for palkia diag", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
+            cv2.putText(frame, "Waiting for palkia diag", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 8:
             (b, g, r) = frame[977, 1271]
             if r != 255 and g != 255 and b != 255:
                 check_state = 9
-            cv2.putText(frame, "Waiting for fight start", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
+            cv2.putText(frame, "Waiting for fight start", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 9:
             (b, g, r) = frame[977, 1271]
-            if r == 255 and g == 255 and b == 255:
+            if r >= 200 and g >= 200 and b >= 200:
                 check_state = 10
-            cv2.putText(frame, "Waiting for palkia diag", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
+            cv2.putText(frame, "Waiting for palkia diag", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 10:
             total_frame += 1
             (b, g, r) = frame[647, 1731]
-            if r == 254 and g == 77 and b == 55:
+            if r >= 230 and g <= 100 and b <= 100:
                 check_state = 11
-            cv2.putText(frame, "Waiting for fight button", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
+            cv2.putText(frame, "Waiting for fight button", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 11:
-            cv2.putText(frame, "In fight after: {} frames".format(total_frame), (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
+            cv2.putText(frame, "In fight after: {} frames".format(total_frame), (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
             print("Number of frames: {}".format(total_frame))
             time = datetime.now().strftime("%d%m%Y_%H%M%S")
             time = time + ".jpg"
@@ -221,7 +229,7 @@ def main():
                 check_state = 0
                 total_frame = 0
         if check_state == 12:
-            cv2.putText(frame, "Shiny!", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,255,0), 5)
+            cv2.putText(frame, "Shiny!", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,255,0), 5)
     vc.release()
     cv2.destroyWindow("preview")
 
