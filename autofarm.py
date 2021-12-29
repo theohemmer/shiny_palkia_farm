@@ -1,6 +1,5 @@
 #!/bin/python3
 
-from nxbt import controller
 import cv2
 import smtplib
 from datetime import datetime
