@@ -1,9 +1,13 @@
+#!/bin/python3
+
+from nxbt import controller
 import cv2
 import smtplib
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
+import nxbt
 
 #|N         NAME            X      Y      R   G   B |
 #|0 - example            : 1920   1080   255 255 255|
@@ -52,15 +56,48 @@ def show_coord(event, x, y, flags, param):
         point_x = x
         point_y = y
 
+def sendHome(nx, ctrl_idx):
+    macro = """
+    HOME 0.1s
+    1s
+    """
+    nx.macro(ctrl_idx, macro)
+
+def sendA(nx, ctrl_idx):
+    macro = """
+    A 0.1s
+    1s
+    """
+    nx.macro(ctrl_idx, macro)
+
+def sendX(nx, ctrl_idx):
+    macro = """
+    X 0.1s
+    1s
+    """
+    nx.macro(ctrl_idx, macro)
+
+def sendUP(nx, ctrl_idx):
+    macro = """
+    DPAD_UP 0.1s
+    1s
+    """
+    nx.macro(ctrl_idx, macro)
+
 def main():
     global point_y
     global point_x
     cv2.namedWindow("preview")
     cv2.setMouseCallback("preview", show_coord)
 
+    nx = nxbt.Nxbt()
+
+    ctrl_idx = nx.create_controller(nxbt.PRO_CONTROLLER)
+    nx.wait_for_connection(ctrl_idx)
+
     state = False
 
-    vc = cv2.VideoCapture(1)
+    vc = cv2.VideoCapture(0)
     vc.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
     vc.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
@@ -83,9 +120,6 @@ def main():
         if state == False:
             rval, frame = vc.read()
         key = cv2.waitKey(1)
-        cv2.circle(frame, (point_x,point_y), 5, (255,0,0), 5)
-        (b, g, r) = frame[point_y, point_x]
-        print("Point - ({}, {}) R: {} G: {} B: {}".format(point_x, point_y, r, g, b))
         if actual_frame >= 10000:
             time = datetime.now().strftime("%d%m%Y_%H%M%S")
             time = time + ".jpg"
@@ -99,41 +133,50 @@ def main():
         if check_state == 0:
             (b, g, r) = frame[806, 521]
             if r == 233 and g == 0 and b == 0:
+                sendX(nx, ctrl_idx)
                 check_state = 1
             cv2.putText(frame, "Waiting for home screen", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 1:
             (b, g, r) = frame[517, 528]
             if r == 255 and g == 245 and b == 18:
+                sendA(nx, ctrl_idx)
                 check_state = 2
             cv2.putText(frame, "Waiting for exit confirmation", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 2:
             (b, g, r) = frame[806, 521]
             if r == 233 and g == 0 and b == 0:
+                sendA(nx, ctrl_idx)
                 check_state = 3
             cv2.putText(frame, "Waiting for home screen", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 3:
             (b, g, r) = frame[650, 911]
             if r == 255 and g == 255 and b == 136:
+                sendA(nx, ctrl_idx)
                 check_state = 4
             cv2.putText(frame, "Waiting for player choise", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 4:
             (b, g, r) = frame[414, 1041]
             if r == 255 and g == 255 and b == 255:
+                sendA(nx, ctrl_idx)
                 check_state = 5
             cv2.putText(frame, "Waiting for developed by", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 5:
             (b, g, r) = frame[318, 827]
             if r == 255 and g == 237 and b == 13:
+                sendA(nx, ctrl_idx)
                 check_state = 6
             cv2.putText(frame, "Waiting for title screen", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 6:
             (b, g, r) = frame[108, 570]
             if r == 255 and g == 255 and b == 255:
+                sendUP(nx, ctrl_idx)
                 check_state = 7
             cv2.putText(frame, "Waiting for in game", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 7:
             (b, g, r) = frame[977, 1271]
             if r == 255 and g == 255 and b == 255:
+                sendA(nx, ctrl_idx)
+                sendA(nx, ctrl_idx)
                 check_state = 8
             cv2.putText(frame, "Waiting for palkia diag", (0,1070), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 8:
@@ -161,6 +204,7 @@ def main():
                 sendMail(time, "Personnel - A shiny as maybe been found", "Look in the attachement")
                 check_state = 12
             else:
+                sendHome(nx, ctrl_idx)
                 check_state = 0
                 total_frame = 0
         if check_state == 12:
