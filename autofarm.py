@@ -47,7 +47,7 @@ def sendMail(img_name, subject, body):
     s.ehlo()
     s.starttls()
     s.ehlo()
-    s.login("Username", "Password")
+    s.login("", "")
     s.sendmail('xxarchitekxx@gmail.com', "theo.hemmer@epitech.eu", msg.as_string())
     s.quit()
 
@@ -59,33 +59,60 @@ def show_coord(event, x, y, flags, param):
         point_x = x
         point_y = y
 
+lastaction = 0
+
 def sendHome(nx, ctrl_idx):
+    global lastaction
+    lastaction = 1
     macro = """
     HOME 0.1s
-    1s
+    2s
     """
     nx.macro(ctrl_idx, macro)
 
 def sendA(nx, ctrl_idx):
+    global lastaction
+    lastaction = 2
     macro = """
     A 0.1s
-    1s
+    2s
     """
     nx.macro(ctrl_idx, macro)
 
 def sendX(nx, ctrl_idx):
+    global lastaction
+    lastaction = 3
     macro = """
     X 0.1s
-    1s
+    2s
     """
     nx.macro(ctrl_idx, macro)
 
 def sendUP(nx, ctrl_idx):
+    global lastaction
+    lastaction = 4
     macro = """
     DPAD_UP 0.1s
-    1s
+    2s
     """
     nx.macro(ctrl_idx, macro)
+
+def unstuck(nx, ctrl_idx, frame):
+    global lastaction
+    if lastaction == 1:
+        sendHome(nx, ctrl_idx)
+    if lastaction == 2:
+        sendA(nx, ctrl_idx)
+    if lastaction == 3:
+        sendX(nx, ctrl_idx)
+    if lastaction == 4:
+        sendUP(nx, ctrl_idx)
+    if lastaction == 5:
+        time = datetime.now().strftime("%d%m%Y_%H%M%S")
+        time = time + ".jpg"
+        cv2.imwrite(time, frame)
+        sendMail(time, "Personnel - The Shiny farmer is stuck", "Look in the attachement")
+    lastaction = 5
 
 def check_pixel(r, g, b, r1, g1, b1):
     if r + 10 >= r1 or r - 10 <= r1:
@@ -135,11 +162,10 @@ def main():
         if state == False:
             rval, frame = vc.read()
         key = cv2.waitKey(20)
-        if actual_frame >= 10000:
-            time = datetime.now().strftime("%d%m%Y_%H%M%S")
-            time = time + ".jpg"
-            cv2.imwrite(time, frame)
-            sendMail(time, "Personnel - The Shiny farmer is stuck", "Look in the attachement")
+        if actual_frame == 10000:
+            unstuck(nx, ctrl_idx, frame)
+        if actual_frame == 20000:
+            unstuck(nx, ctrl_idx, frame)
         cv2.circle(frame, (point_x, point_y), 5, (255,0,0), 5)
         (b, g, r) = frame[point_y, point_x]
         #print("Point - ({}, {}) R: {}, G: {}, B: {}".format(point_x, point_y, r, g, b))
