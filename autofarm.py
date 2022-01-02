@@ -65,8 +65,8 @@ def sendHome(nx, ctrl_idx):
     global lastaction
     lastaction = 1
     macro = """
-    HOME 0.1s
-    2s
+    HOME 0.2s
+    1.5s
     """
     nx.macro(ctrl_idx, macro)
 
@@ -74,8 +74,8 @@ def sendA(nx, ctrl_idx):
     global lastaction
     lastaction = 2
     macro = """
-    A 0.1s
-    2s
+    A 0.2s
+    1.5s
     """
     nx.macro(ctrl_idx, macro)
 
@@ -83,8 +83,8 @@ def sendX(nx, ctrl_idx):
     global lastaction
     lastaction = 3
     macro = """
-    X 0.1s
-    2s
+    X 0.2s
+    1.5s
     """
     nx.macro(ctrl_idx, macro)
 
@@ -92,13 +92,16 @@ def sendUP(nx, ctrl_idx):
     global lastaction
     lastaction = 4
     macro = """
-    DPAD_UP 0.1s
-    2s
+    DPAD_UP 0.2s
+    1.5s
     """
     nx.macro(ctrl_idx, macro)
 
-def unstuck(nx, ctrl_idx, frame):
+def unstuck(nx, ctrl_idx, frame, reset):
     global lastaction
+    if reset == True:
+        lastaction = 0
+        return
     if lastaction == 1:
         sendHome(nx, ctrl_idx)
     if lastaction == 2:
@@ -121,6 +124,9 @@ def check_pixel(r, g, b, r1, g1, b1):
                 return True
     return False
 
+def to_720(coord):
+    return int(coord * (2/3))
+
 def main():
     global point_y
     global point_x
@@ -137,8 +143,8 @@ def main():
     sendHome(nx, ctrl_idx)
 
     vc = cv2.VideoCapture(0, cv2.CAP_ANY)
-    vc.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-    vc.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    vc.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    vc.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
     vc.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 
     print(vc.get(cv2.CAP_PROP_BACKEND))
@@ -149,96 +155,123 @@ def main():
         rval = False
 
     check_state = 0
-    prev_state = 0
+    prev_state = -1
     actual_frame = 0
     total_frame = 0
+    number_of_try = 0
 
     while rval:
         actual_frame += 1
         if check_state != prev_state:
+            if check_state == 0:
+                number_of_try += 1
+                print("Try #", number_of_try)
             prev_state = check_state
             actual_frame = 0
         cv2.imshow("preview", frame)
         if state == False:
             rval, frame = vc.read()
         key = cv2.waitKey(20)
-        if actual_frame == 10000:
-            unstuck(nx, ctrl_idx, frame)
-        if actual_frame == 20000:
-            unstuck(nx, ctrl_idx, frame)
+        if actual_frame == 2000 and check_state != 12:
+            unstuck(nx, ctrl_idx, frame, False)
+        if actual_frame == 4000 and check_state != 12:
+            unstuck(nx, ctrl_idx, frame, False)
+        if actual_frame == 6000 and check_state != 12:
+            unstuck(0, 0, frame, True)
+            sendHome(nx, ctrl_idx)
+            sendA(nx, ctrl_idx)
+            sendA(nx, ctrl_idx)
+            sendHome(nx, ctrl_idx)
+            total_frame = 0
+            check_state = 0
         cv2.circle(frame, (point_x, point_y), 5, (255,0,0), 5)
         (b, g, r) = frame[point_y, point_x]
         #print("Point - ({}, {}) R: {}, G: {}, B: {}".format(point_x, point_y, r, g, b))
         if key == 27: # exit on ESC
             break
         if key == 13:
+            unstuck(0, 0, frame, True)
+            sendHome(nx, ctrl_idx)
+            sendA(nx, ctrl_idx)
+            sendA(nx, ctrl_idx)
+            sendHome(nx, ctrl_idx)
             check_state = 0
             total_frame = 0
         if check_state == 0:
-            (b, g, r) = frame[806, 521]
+            (b, g, r) = frame[to_720(806), to_720(521)]
             if r >= 220 and g <= 50 and b <= 50:
                 sendX(nx, ctrl_idx)
                 check_state = 1
             cv2.putText(frame, "Waiting for home screen", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 1:
-            (b, g, r) = frame[189, 727]
+            (b, g, r) = frame[to_720(189), to_720(727)]
             if r <= 100 and g <= 100 and b <= 100:
                 sendA(nx, ctrl_idx)
                 check_state = 2
             cv2.putText(frame, "Waiting for exit confirmation", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 2:
-            (b, g, r) = frame[806, 521]
+            (b, g, r) = frame[to_720(806), to_720(521)]
             if r >= 220 and g <= 50 and b <= 50:
                 sendA(nx, ctrl_idx)
                 check_state = 3
             cv2.putText(frame, "Waiting for home screen", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 3:
-            (b, g, r) = frame[650, 911]
+            (b, g, r) = frame[to_720(650), to_720(911)]
             if r >= 220 and g >= 220 and b <= 220:
                 sendA(nx, ctrl_idx)
                 check_state = 4
             cv2.putText(frame, "Waiting for player choise", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 4:
-            (b, g, r) = frame[416, 960]
-            (b1, g1, r1) = frame[15, 954]
+            (b, g, r) = frame[to_720(416), to_720(960)]
+            (b1, g1, r1) = frame[to_720(15), to_720(954)]
             if r >= 200 and g >= 200 and b >= 200:
                 if b1 <= 10 and g1 <= 10 and b1 <= 10:
                     sendA(nx, ctrl_idx)
                     check_state = 5
             cv2.putText(frame, "Waiting for developed by", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 5:
-            (b, g, r) = frame[318, 827]
+            (b, g, r) = frame[to_720(318), to_720(827)]
             if r >= 200 and g >= 200 and b <= 100:
                 sendA(nx, ctrl_idx)
                 check_state = 6
             cv2.putText(frame, "Waiting for title screen", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 6:
-            (b, g, r) = frame[108, 570]
+            (b, g, r) = frame[to_720(108), to_720(570)]
             if r >= 200 and g >= 200 and b >= 200:
                 sendUP(nx, ctrl_idx)
                 check_state = 7
             cv2.putText(frame, "Waiting for in game", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 7:
-            (b, g, r) = frame[977, 1271]
+            (b, g, r) = frame[to_720(977), to_720(1271)]
             if r >= 200 and g >= 200 and b >= 200:
                 sendA(nx, ctrl_idx)
                 sendA(nx, ctrl_idx)
                 check_state = 8
             cv2.putText(frame, "Waiting for palkia diag", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 8:
-            (b, g, r) = frame[977, 1271]
+            (b, g, r) = frame[to_720(977), to_720(1271)]
             if r != 255 and g != 255 and b != 255:
                 check_state = 9
             cv2.putText(frame, "Waiting for fight start", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 9:
-            (b, g, r) = frame[977, 1271]
+            (b, g, r) = frame[to_720(977), to_720(1271)]
             if r >= 200 and g >= 200 and b >= 200:
                 check_state = 10
             cv2.putText(frame, "Waiting for palkia diag", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 10:
             total_frame += 1
-            (b, g, r) = frame[647, 1731]
-            if r >= 230 and g <= 100 and b <= 100:
+            (b, g, r) = frame[to_720(647), to_720(1731)]
+            (b1, g1, r1) = frame[62, 1072] #coord where taken in 720p
+            (b2, g2, r2) = frame[622, 215] #coord where taken in 720p
+            (b3, g3, r3) = frame[511, 1158] #coord where taken in 720p
+            (b4, g4, r4) = frame[590, 1139] #coord where taken in 720p
+            (b5, g5, r5) = frame[670, 1135] #coord where taken in 720p
+            if r >= 230 and g <= 100 and b <= 100 \
+            and r1 >= 220 and g1 >= 220 and b1 >= 220 \
+            and r2 >= 220 and g2 >= 220 and b2 >= 220 \
+            and r3 <= 100 and g3 >= 180 and b3 <= 100 \
+            and r4 >= 200 and g4 >= 150 and b4 <= 100 \
+            and r5 <= 170 and g5 <= 170 and b5 >= 220:
                 check_state = 11
             cv2.putText(frame, "Waiting for fight button", (0,100), cv2.FONT_HERSHEY_PLAIN, 5, (0,0,255), 5)
         if check_state == 11:
@@ -247,7 +280,7 @@ def main():
             time = datetime.now().strftime("%d%m%Y_%H%M%S")
             time = time + ".jpg"
             cv2.imwrite(time, frame)
-            if total_frame >= 470:
+            if total_frame >= 160:
                 sendMail(time, "Personnel - A shiny as maybe been found", "Look in the attachement")
                 check_state = 12
             else:
